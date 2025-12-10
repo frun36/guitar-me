@@ -5,6 +5,14 @@ load
 break main
 continue
 
-# --- Dashboard ---
-source ~/.gdbinit
-dashboard -layout source assembly registers stack variables expressions
+# --- Appearance ---
+tui enable
+tui new-layout sidebyside {-horizontal src 1 asm 1} 2 status 0 cmd 1
+layout sidebyside
+
+winheight src 16
+winheight asm 16
+
+focus cmd
+
+set print pretty on
