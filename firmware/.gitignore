@@ -1,5 +1,0 @@
-build/
-.cache/
-.gdb_history
-openocd.log
-compile_commands.json
