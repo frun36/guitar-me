@@ -61,8 +61,8 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 # Target for flash
 add_custom_target(flash
     COMMAND arm-none-eabi-objcopy -O binary ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.bin
-    COMMAND st-flash --reset write ${CMAKE_PROJECT_NAME}.bin 0x8000000
-    COMMAND st-flash reset
+    COMMAND st-flash --connect-under-reset --reset write ${CMAKE_PROJECT_NAME}.bin 0x8000000
+    COMMAND st-flash --connect-under-reset reset
     DEPENDS ${CMAKE_PROJECT_NAME}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Flashing ${CMAKE_PROJECT_NAME}.bin to 0x8000000..."
