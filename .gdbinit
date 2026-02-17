@@ -13,6 +13,4 @@ layout sidebyside
 winheight src 16
 winheight asm 16
 
-focus cmd
-
 set print pretty on

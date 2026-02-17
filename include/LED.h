@@ -16,8 +16,9 @@ static inline void LED_Init() {
         .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
         .Pull = LL_GPIO_PULL_NO
     };
-    
+
     LL_GPIO_Init(GPIOB, &led);
+    LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
 }
 
 static inline void LED_On() {
@@ -26,4 +27,8 @@ static inline void LED_On() {
 
 static inline void LED_Off() {
     LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
+}
+
+static inline void LED_Toggle() {
+    LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
 }
