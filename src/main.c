@@ -13,9 +13,11 @@
 #include "stm32f3xx_ll_usart.h"
 #include "stm32f3xx_ll_utils.h"
 
+#include "arm_math.h"
+
 #define CLOCK_FREQ 64000000
 #define SAMPLE_FREQ 32000
-#define BUF_SIZE 128
+#define BUF_SIZE 64
 #define BUF_SIZE_HALF (BUF_SIZE >> 1)
 
 extern void SystemClock_Config(void);

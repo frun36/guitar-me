@@ -40,13 +40,35 @@ add_subdirectory(
     guitar-me-cube/cmake/stm32cubemx 
 )
 
-# Libraries
-target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # ...
+# DSP
+add_compile_options(
+    -mcpu=cortex-m4
+    -mfpu=fpv4-sp-d16
+    -mfloat-abi=hard
 )
+add_link_options(
+    -mcpu=cortex-m4
+    -mfpu=fpv4-sp-d16
+    -mfloat-abi=hard
+)
+
+add_library(cmsis_dsp_lib STATIC IMPORTED)
+set_target_properties(cmsis_dsp_lib PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/guitar-me-cube/Drivers/CMSIS/Lib/GCC/libarm_cortexM4lf_math.a"
+)
+target_include_directories(cmsis_dsp_lib INTERFACE
+    "${CMAKE_SOURCE_DIR}/guitar-me-cube/Drivers/CMSIS/DSP/Include"
+)
+target_compile_definitions(cmsis_dsp_lib INTERFACE
+    ARM_MATH_CM4
+)
+
+# Libraries
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
+    cmsis_dsp_lib
+    m
     # ...
 )
 
