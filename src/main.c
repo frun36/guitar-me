@@ -28,13 +28,11 @@ int main(void) {
     printf("Helou\r\n");
 
     LED_Init();
-
     Codec_Init();
-    Codec_Enable();
 
     while (1) {
         Codec_Handle();
 
-        __WFI();
+        // __WFI();
     }
 }

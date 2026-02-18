@@ -39,7 +39,6 @@ static void TIM6_Init() {
     };
     LL_TIM_Init(TIM6, &timer);
     LL_TIM_SetTriggerOutput(TIM6, LL_TIM_TRGO_UPDATE);
-    LL_TIM_EnableCounter(TIM6);
 }
 
 static void ADC_Init() {
@@ -113,9 +112,7 @@ static void ADC_Init() {
 
     NVIC_SetPriority(DMA1_Channel1_IRQn, 0);
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-}
 
-static void ADC_Enable() {
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
     LL_ADC_REG_StartConversion(ADC1);
 }
@@ -152,16 +149,14 @@ static void DAC_Init() {
     LL_DAC_InitTypeDef dac = {
         .TriggerSource = LL_DAC_TRIG_EXT_TIM6_TRGO,
         .WaveAutoGeneration = LL_DAC_WAVE_AUTO_GENERATION_NONE,
-        .OutputBuffer = LL_DAC_OUTPUT_BUFFER_ENABLE,
+        .OutputBuffer = LL_DAC_OUTPUT_BUFFER_DISABLE,
     };
     LL_DAC_Init(DAC1, LL_DAC_CHANNEL_1, &dac);
     LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
 
     LL_mDelay(10);
-}
 
-static void DAC_Enable() {
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
     LL_DAC_EnableDMAReq(DAC1, LL_DAC_CHANNEL_1);
 }
@@ -170,12 +165,9 @@ void Codec_Init(void) {
     DAC_Init();
     ADC_Init();
     TIM6_Init();
+    LL_TIM_EnableCounter(TIM6);
 }
 
-void Codec_Enable(void) {
-    ADC_Enable();
-    DAC_Enable();
-}
 
 void Codec_Handle() {
     if (ADC_FirstHalf) {
