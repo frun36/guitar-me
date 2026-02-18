@@ -27,6 +27,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # User sources
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/main.c
+    src/Codec.c
+    src/DSP.c
     # ...
 )
 
@@ -64,7 +66,6 @@ target_compile_definitions(cmsis_dsp_lib INTERFACE
 )
 
 # Libraries
-
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     cmsis_dsp_lib
