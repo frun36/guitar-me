@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "Codec.h"
+#include "DSP.h"
 #include "LED.h"
 #include "stm32f303x8.h"
 #include "stm32f3xx_ll_bus.h"
@@ -29,6 +30,7 @@ int main(void) {
 
     LED_Init();
     Codec_Init();
+    DSP_Init();
 
     while (1) {
         Codec_Handle();

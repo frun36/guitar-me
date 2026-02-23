@@ -166,10 +166,22 @@ void Codec_Init(void) {
     ADC_Init();
     TIM6_Init();
     LL_TIM_EnableCounter(TIM6);
+
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+
+    LL_GPIO_InitTypeDef led = {
+        .Pin = LL_GPIO_PIN_4,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO
+    };
+    LL_GPIO_Init(GPIOB, &led);
+    LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
 }
 
-
 void Codec_Handle() {
+    LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_4);
     if (ADC_FirstHalf) {
         ADC_FirstHalf = 0;
         DSP_Process((uint16_t*)ADC_Buf, (uint16_t*)DAC_Buf);
@@ -182,4 +194,5 @@ void Codec_Handle() {
             (uint16_t*)DAC_Buf + BUF_SIZE_HALF
         );
     }
+    LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_4);
 }
