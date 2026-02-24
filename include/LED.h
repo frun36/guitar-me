@@ -5,8 +5,6 @@
 #include "stm32f3xx_ll_gpio.h"
 
 static inline void LED_Init() {
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOF);
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 
     LL_GPIO_InitTypeDef led = {

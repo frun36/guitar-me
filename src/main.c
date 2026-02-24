@@ -2,6 +2,7 @@
 
 #include "Codec.h"
 #include "DSP.h"
+#include "Encoder.h"
 #include "LED.h"
 #include "stm32f303x8.h"
 #include "stm32f3xx_ll_bus.h"
@@ -31,10 +32,25 @@ int main(void) {
     LED_Init();
     Codec_Init();
     DSP_Init();
+    Encoder_Init();
+
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+    LL_GPIO_InitTypeDef led = {
+        .Pin = LL_GPIO_PIN_11,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO
+    };
+    LL_GPIO_Init(GPIOA, &led);
+    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
 
     while (1) {
-        Codec_Handle();
+        LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11);
 
-        // __WFI();
+        Codec_Handle();
+        DSP_UpdateParameters(Encoder_GetDelta());
+
+        LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
     }
 }

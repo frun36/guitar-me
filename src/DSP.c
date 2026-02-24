@@ -20,7 +20,7 @@ static const q15_t DECIMATOR_COEFFS[DECIMATOR_TAPS] = {
     -878, 0,     462, 0,     -221,  0,     96,  0,     -56,
 };
 
-static const q15_t INTERPOLATOR_COEFFS[INTERPOLATOR_TAPS]= {
+static const q15_t INTERPOLATOR_COEFFS[INTERPOLATOR_TAPS] = {
     -76,   -91,   128,   192,  -287,  -418,  592,  818,   -1110, -1490, 1996,
     2699,  -3755, -5571, 9647, 29495, 29495, 9647, -5571, -3755, 2699,  1996,
     -1490, -1110, 818,   592,  -418,  -287,  192,  128,   -91,   -76,
@@ -101,4 +101,8 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     arm_shift_q15(Buffer, -4, Buffer, IN_N);
     arm_offset_q15(Buffer, 2048, (q15_t*)out, IN_N);
 #endif
+}
+
+void DSP_UpdateParameters(int delta) {
+    if (delta == 0) return;
 }
