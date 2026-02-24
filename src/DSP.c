@@ -12,7 +12,7 @@
 #define IN_N (BUF_SIZE_HALF)
 #define N (IN_N >> DECIMATE_EXP)
 
-static q15_t Buffer[N];
+static q15_t s_buffer[N];
 
 #if DECIMATE_EXP == 1 && DECIMATOR_TAPS == 31 && INTERPOLATOR_TAPS == 32
 static const q15_t DECIMATOR_COEFFS[DECIMATOR_TAPS] = {
@@ -29,22 +29,22 @@ static const q15_t INTERPOLATOR_COEFFS[INTERPOLATOR_TAPS] = {
 #endif
 
 #if DECIMATE_EXP
-static q15_t DecimatorState[DECIMATOR_TAPS + IN_N - 1];
-static arm_fir_decimate_instance_q15 Decimator;
+static q15_t s_decimator_state[DECIMATOR_TAPS + IN_N - 1];
+static arm_fir_decimate_instance_q15 s_decimator;
 
-static q15_t InterpolatorState[(INTERPOLATOR_TAPS << DECIMATE_EXP) + IN_N - 1];
-static arm_fir_interpolate_instance_q15 Interpolator;
+static q15_t s_interpolator_state[(INTERPOLATOR_TAPS << DECIMATE_EXP) + IN_N - 1];
+static arm_fir_interpolate_instance_q15 s_interpolator;
 #endif
 
-static FX_EQ_Peak_t Peak;
-static q15_t FilterCoeffs[6];
-static q15_t FilterState[4];
-static arm_biquad_casd_df1_inst_q15 Filter;
+static FX_EQ_Peak_t s_peak;
+static q15_t s_filter_coeffs[6];
+static q15_t s_filter_state[4];
+static arm_biquad_casd_df1_inst_q15 s_filter;
 
 static int CheckClipping() {
     size_t clipped = 0;
     for (size_t i = 0; i < N; i++) {
-        if (Buffer[i] < Q15(-0.98f) || Buffer[i] > Q15(0.98f))
+        if (s_buffer[i] < Q15(-0.98f) || s_buffer[i] > Q15(0.98f))
             clipped++;
         else
             clipped = 0;
@@ -57,33 +57,33 @@ static int CheckClipping() {
 void DSP_Init() {
 #if DECIMATE_EXP
     arm_fir_decimate_init_q15(
-        &Decimator,
+        &s_decimator,
         DECIMATOR_TAPS,
         1 << DECIMATE_EXP,
         (q15_t*)DECIMATOR_COEFFS,
-        DecimatorState,
+        s_decimator_state,
         IN_N
     );
 
     arm_fir_interpolate_init_q15(
-        &Interpolator,
+        &s_interpolator,
         1 << DECIMATE_EXP,
         INTERPOLATOR_TAPS,
         (q15_t*)INTERPOLATOR_COEFFS,
-        InterpolatorState,
+        s_interpolator_state,
         N
     );
 #endif
 
-    FX_EQ_Peak_Init(&Peak, 800, 1.5, 0, FilterCoeffs);
-    arm_biquad_cascade_df1_init_q15(&Filter, 1, FilterCoeffs, FilterState, 1);
+    FX_EQ_Peak_Init(&s_peak, 800, 1.5, 0, s_filter_coeffs);
+    arm_biquad_cascade_df1_init_q15(&s_filter, 1, s_filter_coeffs, s_filter_state, 1);
 }
 
 void DSP_Process(uint16_t* in, uint16_t* out) {
 #if DECIMATE_EXP
     arm_offset_q15((q15_t*)in, -2048, (q15_t*)in, IN_N);
     arm_shift_q15((q15_t*)in, 4, (q15_t*)in, IN_N);
-    arm_fir_decimate_q15(&Decimator, (q15_t*)in, Buffer, IN_N);
+    arm_fir_decimate_q15(&s_decimator, (q15_t*)in, s_buffer, IN_N);
 #else
     arm_offset_q15((q15_t*)in, -2048, Buffer, IN_N);
     arm_shift_q15(Buffer, 4, Buffer, IN_N);
@@ -94,10 +94,10 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     else
         LED_Off();
 
-    arm_biquad_cascade_df1_q15(&Filter, Buffer, Buffer, N);
+    arm_biquad_cascade_df1_q15(&s_filter, s_buffer, s_buffer, N);
 
 #if DECIMATE_EXP
-    arm_fir_interpolate_q15(&Interpolator, Buffer, (q15_t*)out, N);
+    arm_fir_interpolate_q15(&s_interpolator, s_buffer, (q15_t*)out, N);
     arm_shift_q15((q15_t*)out, -4, (q15_t*)out, IN_N);
     arm_offset_q15((q15_t*)out, 2048, (q15_t*)out, IN_N);
 #else
@@ -109,5 +109,5 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
 void DSP_UpdateParameters(int delta) {
     if (delta == 0)
         return;
-    FX_EQ_Peak_UpdateParameters(&Peak, 0, 0, (float32_t)delta, FilterCoeffs);
+    FX_EQ_Peak_UpdateParameters(&s_peak, 0, 0, (float32_t)delta, s_filter_coeffs);
 }

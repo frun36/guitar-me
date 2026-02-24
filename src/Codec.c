@@ -13,21 +13,26 @@
 #include "Config.h"
 #include "DSP.h"
 
-static volatile uint16_t ADC_Buf[BUF_SIZE] = {};
-static volatile uint16_t DAC_Buf[BUF_SIZE] = {};
+static volatile uint16_t s_adc_buf[BUF_SIZE] = {};
+static volatile uint16_t s_dac_buf[BUF_SIZE] = {};
 
-static volatile int ADC_FirstHalf = 0;
-static volatile int ADC_SecondHalf = 0;
+static volatile int s_data_ready;
+static volatile uint16_t* s_adc_ptr;
+static volatile uint16_t* s_dac_ptr;
 
 void DMA1_Channel1_IRQHandler(void) {
     if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
         LL_DMA_ClearFlag_HT1(DMA1);
-        ADC_FirstHalf = 1;
+        s_data_ready = 1;
+        s_adc_ptr = s_adc_buf;
+        s_dac_ptr = s_dac_buf;
     }
 
     if (LL_DMA_IsActiveFlag_TC1(DMA1)) {
         LL_DMA_ClearFlag_TC1(DMA1);
-        ADC_SecondHalf = 1;
+        s_data_ready = 1;
+        s_adc_ptr = s_adc_buf + BUF_SIZE_HALF;
+        s_dac_ptr = s_dac_buf + BUF_SIZE_HALF;
     }
 }
 
@@ -50,10 +55,10 @@ static void ADC_Init() {
     LL_GPIO_SetPinPull(GPIOA, LL_GPIO_PIN_0, LL_GPIO_PULL_NO);
 
     // ADC
-    LL_ADC_CommonInitTypeDef adcCommon = {
+    LL_ADC_CommonInitTypeDef adc_common = {
         .CommonClock = LL_ADC_CLOCK_ASYNC_DIV1
     };
-    LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &adcCommon);
+    LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &adc_common);
 
     LL_ADC_InitTypeDef adc = {
         .Resolution = LL_ADC_RESOLUTION_12B,
@@ -70,7 +75,7 @@ static void ADC_Init() {
     while (LL_ADC_IsCalibrationOnGoing(ADC1))
         ;
 
-    LL_ADC_REG_InitTypeDef adcReg = {
+    LL_ADC_REG_InitTypeDef adc_reg = {
         .TriggerSource = LL_ADC_REG_TRIG_EXT_TIM6_TRGO,
         .SequencerLength = LL_ADC_REG_SEQ_SCAN_DISABLE,
         .SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE,
@@ -78,7 +83,7 @@ static void ADC_Init() {
         .DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED,
         .Overrun = LL_ADC_REG_OVR_DATA_OVERWRITTEN,
     };
-    LL_ADC_REG_Init(ADC1, &adcReg);
+    LL_ADC_REG_Init(ADC1, &adc_reg);
 
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, LL_ADC_CHANNEL_1);
     LL_ADC_SetChannelSamplingTime(
@@ -96,7 +101,7 @@ static void ADC_Init() {
     LL_DMA_InitTypeDef dma = {
         .PeriphOrM2MSrcAddress =
             LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA),
-        .MemoryOrM2MDstAddress = (uint32_t)ADC_Buf,
+        .MemoryOrM2MDstAddress = (uint32_t)s_adc_buf,
         .Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY,
         .Mode = LL_DMA_MODE_CIRCULAR,
         .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
@@ -130,7 +135,7 @@ static void DAC_Init() {
             LL_DAC_CHANNEL_1,
             LL_DAC_DMA_REG_DATA_12BITS_RIGHT_ALIGNED
         ),
-        .MemoryOrM2MDstAddress = (uint32_t)DAC_Buf,
+        .MemoryOrM2MDstAddress = (uint32_t)s_dac_buf,
         .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
         .Mode = LL_DMA_MODE_CIRCULAR,
         .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
@@ -169,16 +174,8 @@ void Codec_Init(void) {
 }
 
 void Codec_Handle() {
-    if (ADC_FirstHalf) {
-        ADC_FirstHalf = 0;
-        DSP_Process((uint16_t*)ADC_Buf, (uint16_t*)DAC_Buf);
-    }
-
-    if (ADC_SecondHalf) {
-        ADC_SecondHalf = 0;
-        DSP_Process(
-            (uint16_t*)ADC_Buf + BUF_SIZE_HALF,
-            (uint16_t*)DAC_Buf + BUF_SIZE_HALF
-        );
+    if (s_data_ready) {
+        s_data_ready = 0;
+        DSP_Process((uint16_t*)s_adc_ptr, (uint16_t*)s_dac_ptr);
     }
 }
