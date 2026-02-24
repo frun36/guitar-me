@@ -3,6 +3,7 @@
 #include <stm32f303x8.h> // symbols for ARM math
 
 #include "Config.h"
+#include "FX/EQ_Peak.h"
 #include "LED.h"
 #include "arm_math.h"
 
@@ -35,7 +36,8 @@ static q15_t InterpolatorState[(INTERPOLATOR_TAPS << DECIMATE_EXP) + IN_N - 1];
 static arm_fir_interpolate_instance_q15 Interpolator;
 #endif
 
-static q15_t FILTER_COEFFS[6] = {17174, 0, -32065, 15068, 32065, -15857};
+static FX_EQ_Peak_t Peak;
+static q15_t FilterCoeffs[6];
 static q15_t FilterState[4];
 static arm_biquad_casd_df1_inst_q15 Filter;
 
@@ -73,7 +75,8 @@ void DSP_Init() {
     );
 #endif
 
-    arm_biquad_cascade_df1_init_q15(&Filter, 1, FILTER_COEFFS, FilterState, 1);
+    FX_EQ_Peak_Init(&Peak, 800, 1.5, 0, FilterCoeffs);
+    arm_biquad_cascade_df1_init_q15(&Filter, 1, FilterCoeffs, FilterState, 1);
 }
 
 void DSP_Process(uint16_t* in, uint16_t* out) {
@@ -104,5 +107,7 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
 }
 
 void DSP_UpdateParameters(int delta) {
-    if (delta == 0) return;
+    if (delta == 0)
+        return;
+    FX_EQ_Peak_UpdateParameters(&Peak, 0, 0, (float32_t)delta, FilterCoeffs);
 }

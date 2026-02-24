@@ -30,6 +30,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/Codec.c
     src/DSP.c
     src/Encoder.c
+    src/FX/EQ_Peak.c
     # ...
 )
 
