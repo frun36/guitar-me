@@ -99,6 +99,7 @@ void SystemClock_Config(void)
   }
   LL_Init1msTick(64000000);
   LL_SetSystemCoreClock(64000000);
+  LL_RCC_SetI2CClockSource(LL_RCC_I2C1_CLKSOURCE_HSI);
   LL_RCC_SetADCClockSource(LL_RCC_ADC12_CLKSRC_PLL_DIV_1);
 }
 

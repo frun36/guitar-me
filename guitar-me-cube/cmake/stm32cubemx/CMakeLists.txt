@@ -44,6 +44,7 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_ll_dma.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_ll_rcc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_ll_dac.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_ll_i2c.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_ll_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_ll_usart.c
 )

@@ -75,7 +75,7 @@ void DSP_Init() {
     );
 #endif
 
-    FX_EQ_Peak_Init(&s_peak, 800, 1.5, 0, s_filter_coeffs);
+    FX_EQ_Peak_Init(&s_peak, 800, 5, 12, s_filter_coeffs);
     arm_biquad_cascade_df1_init_q15(&s_filter, 1, s_filter_coeffs, s_filter_state, 1);
 }
 
@@ -109,5 +109,5 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
 void DSP_UpdateParameters(int delta) {
     if (delta == 0)
         return;
-    FX_EQ_Peak_UpdateParameters(&s_peak, 0, 0, (float32_t)delta, s_filter_coeffs);
+    FX_EQ_Peak_UpdateParameters(&s_peak, 100.f * delta, 0, 0, s_filter_coeffs);
 }

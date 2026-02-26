@@ -4,6 +4,7 @@
 #include "DSP.h"
 #include "Encoder.h"
 #include "LED.h"
+#include "OLED.h"
 #include "stm32f303x8.h"
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_usart.h"
@@ -30,9 +31,15 @@ int main(void) {
     printf("Helou\r\n");
 
     LED_Init();
-    Codec_Init();
-    DSP_Init();
     Encoder_Init();
+    OLED_Init();
+    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
+        OLED_SetPixel(i, i % OLED_HEIGHT, true);
+    }
+    OLED_Flush();
+
+    DSP_Init();
+    Codec_Init();
 
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     LL_GPIO_InitTypeDef led = {

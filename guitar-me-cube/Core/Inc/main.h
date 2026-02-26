@@ -30,6 +30,7 @@ extern "C" {
 #include "stm32f3xx_ll_adc.h"
 #include "stm32f3xx_ll_dac.h"
 #include "stm32f3xx_ll_dma.h"
+#include "stm32f3xx_ll_i2c.h"
 #include "stm32f3xx_ll_rcc.h"
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_system.h"
@@ -73,6 +74,7 @@ void MX_USART2_UART_Init(void);
 void MX_ADC1_Init(void);
 void MX_DAC1_Init(void);
 void MX_TIM6_Init(void);
+void MX_I2C1_Init(void);
 
 /* USER CODE BEGIN EFP */
 
