@@ -33,10 +33,6 @@ int main(void) {
     LED_Init();
     Encoder_Init();
     OLED_Init();
-    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
-        OLED_SetPixel(i, i % OLED_HEIGHT, true);
-    }
-    OLED_Flush();
 
     DSP_Init();
     Codec_Init();

@@ -9,7 +9,7 @@
 
 static void UpdateComputationParameters(FX_EQ_Peak_t* p) {
     p->a = expf(p->g * LN10_OVER_40);
-    p->w_0 = 2.f * PI * p->f_c / SAMPLE_FREQ;
+    p->w_0 = 2.f * PI * p->f_c / (SAMPLE_FREQ >> DECIMATE_EXP);
     p->alpha = sinf(p->w_0) / (2. * p->q);
 }
 

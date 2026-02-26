@@ -1,9 +1,9 @@
 #pragma once
 
 #define CLOCK_FREQ 64000000
-#define SAMPLE_FREQ 96000
+#define SAMPLE_FREQ 192000
 #define BUF_SIZE 128
 #define BUF_SIZE_HALF (BUF_SIZE >> 1)
-#define DECIMATE_EXP 1
+#define DECIMATE_EXP 2
 #define DECIMATOR_TAPS 31
 #define INTERPOLATOR_TAPS 32

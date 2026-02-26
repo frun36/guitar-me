@@ -1,5 +1,6 @@
 #include "Codec.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stm32f3xx_ll_adc.h>
 #include <stm32f3xx_ll_bus.h>
@@ -16,21 +17,21 @@
 static volatile uint16_t s_adc_buf[BUF_SIZE] = {};
 static volatile uint16_t s_dac_buf[BUF_SIZE] = {};
 
-static volatile int s_data_ready;
+static volatile bool s_data_ready;
 static volatile uint16_t* s_adc_ptr;
 static volatile uint16_t* s_dac_ptr;
 
 void DMA1_Channel1_IRQHandler(void) {
     if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
         LL_DMA_ClearFlag_HT1(DMA1);
-        s_data_ready = 1;
+        s_data_ready = true;
         s_adc_ptr = s_adc_buf;
         s_dac_ptr = s_dac_buf;
     }
 
     if (LL_DMA_IsActiveFlag_TC1(DMA1)) {
         LL_DMA_ClearFlag_TC1(DMA1);
-        s_data_ready = 1;
+        s_data_ready = true;
         s_adc_ptr = s_adc_buf + BUF_SIZE_HALF;
         s_dac_ptr = s_dac_buf + BUF_SIZE_HALF;
     }
@@ -175,7 +176,7 @@ void Codec_Init(void) {
 
 void Codec_Handle() {
     if (s_data_ready) {
-        s_data_ready = 0;
+        s_data_ready = false;
         DSP_Process((uint16_t*)s_adc_ptr, (uint16_t*)s_dac_ptr);
     }
 }

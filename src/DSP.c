@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "FX/EQ_Peak.h"
 #include "LED.h"
+#include "OLED.h"
 #include "arm_math.h"
 
 #define Q15(x) ((q15_t)((x) * 32768.0f))
@@ -14,7 +15,7 @@
 
 static q15_t s_buffer[N];
 
-#if DECIMATE_EXP == 1 && DECIMATOR_TAPS == 31 && INTERPOLATOR_TAPS == 32
+#if (DECIMATE_EXP == 1 && DECIMATOR_TAPS == 31 && INTERPOLATOR_TAPS == 32)
 static const q15_t DECIMATOR_COEFFS[DECIMATOR_TAPS] = {
     -56,  0,     96,  0,     -221,  0,     462, 0,     -878, 0,    1609,
     0,    -3176, 0,   10342, 16410, 10342, 0,   -3176, 0,    1609, 0,
@@ -26,13 +27,29 @@ static const q15_t INTERPOLATOR_COEFFS[INTERPOLATOR_TAPS] = {
     2699,  -3755, -5571, 9647, 29495, 29495, 9647, -5571, -3755, 2699,  1996,
     -1490, -1110, 818,   592,  -418,  -287,  192,  128,   -91,   -76,
 };
+
+#elif (DECIMATE_EXP == 2 && DECIMATOR_TAPS == 31 && INTERPOLATOR_TAPS == 32)
+
+static const q15_t DECIMATOR_COEFFS[DECIMATOR_TAPS] = {
+    -39,  -67,  -68,  0,    156,  324,  327,  0,    -621, -1189, -1139,
+    0,    2249, 5022, 7322, 8216, 7322, 5022, 2249, 0,    -1139, -1189,
+    -621, 0,    327,  324,  156,  0,    -68,  -67,  -39,
+};
+
+static const q15_t INTERPOLATOR_COEFFS[INTERPOLATOR_TAPS] = {
+    -83,   -238,  -336,  -208,  311,   1092,  1547,  886,   -1203, -3897, -5219,
+    -2923, 4067,  14568, 25226, 31946, 31946, 25226, 14568, 4067,  -2923, -5219,
+    -3897, -1203, 886,   1547,  1092,  311,   -208,  -336,  -238,  -83,
+};
+
 #endif
 
 #if DECIMATE_EXP
 static q15_t s_decimator_state[DECIMATOR_TAPS + IN_N - 1];
 static arm_fir_decimate_instance_q15 s_decimator;
 
-static q15_t s_interpolator_state[(INTERPOLATOR_TAPS << DECIMATE_EXP) + IN_N - 1];
+static q15_t
+    s_interpolator_state[(INTERPOLATOR_TAPS << DECIMATE_EXP) + IN_N - 1];
 static arm_fir_interpolate_instance_q15 s_interpolator;
 #endif
 
@@ -75,8 +92,14 @@ void DSP_Init() {
     );
 #endif
 
-    FX_EQ_Peak_Init(&s_peak, 800, 5, 12, s_filter_coeffs);
-    arm_biquad_cascade_df1_init_q15(&s_filter, 1, s_filter_coeffs, s_filter_state, 1);
+    FX_EQ_Peak_Init(&s_peak, 800, 2, 0, s_filter_coeffs);
+    arm_biquad_cascade_df1_init_q15(
+        &s_filter,
+        1,
+        s_filter_coeffs,
+        s_filter_state,
+        1
+    );
 }
 
 void DSP_Process(uint16_t* in, uint16_t* out) {
@@ -85,8 +108,8 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     arm_shift_q15((q15_t*)in, 4, (q15_t*)in, IN_N);
     arm_fir_decimate_q15(&s_decimator, (q15_t*)in, s_buffer, IN_N);
 #else
-    arm_offset_q15((q15_t*)in, -2048, Buffer, IN_N);
-    arm_shift_q15(Buffer, 4, Buffer, IN_N);
+    arm_offset_q15((q15_t*)in, -2048, s_buffer, IN_N);
+    arm_shift_q15(s_buffer, 4, s_buffer, IN_N);
 #endif
 
     if (CheckClipping())
@@ -101,13 +124,24 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     arm_shift_q15((q15_t*)out, -4, (q15_t*)out, IN_N);
     arm_offset_q15((q15_t*)out, 2048, (q15_t*)out, IN_N);
 #else
-    arm_shift_q15(Buffer, -4, Buffer, IN_N);
-    arm_offset_q15(Buffer, 2048, (q15_t*)out, IN_N);
+    arm_shift_q15(s_buffer, -4, s_buffer, IN_N);
+    arm_offset_q15(s_buffer, 2048, (q15_t*)out, IN_N);
 #endif
 }
 
 void DSP_UpdateParameters(int delta) {
     if (delta == 0)
         return;
-    FX_EQ_Peak_UpdateParameters(&s_peak, 100.f * delta, 0, 0, s_filter_coeffs);
+    // clear old line
+    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
+        OLED_SetPixel(i, (OLED_HEIGHT >> 1) + s_peak.g, false);
+    }
+
+    FX_EQ_Peak_UpdateParameters(&s_peak, 0, 0, delta, s_filter_coeffs);
+
+    // draw new line
+    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
+        OLED_SetPixel(i, (OLED_HEIGHT >> 1) + s_peak.g, true);
+    }
+    OLED_Flush();
 }

@@ -89,7 +89,7 @@ void OLED_Init() {
 
     LL_I2C_InitTypeDef i2c = {
         .PeripheralMode = LL_I2C_MODE_I2C,
-        .Timing = 0x00201D2B, // magic number from CubeMX
+        .Timing = 0x0010020A, // magic number from CubeMX, fast mode 400kHz
         .AnalogFilter = LL_I2C_ANALOGFILTER_ENABLE,
         .DigitalFilter = 0,
         .OwnAddress1 = 0x00,

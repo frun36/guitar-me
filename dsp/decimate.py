@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 interpolator = True
 
-decimate_factor = 2
+decimate_factor = 4
 num_taps = 32
 
 f_c = 1.0 / decimate_factor
