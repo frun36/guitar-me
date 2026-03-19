@@ -14,26 +14,31 @@
 #include "Config.h"
 #include "DSP.h"
 
-static volatile uint16_t s_adc_buf[BUF_SIZE] = {};
-static volatile uint16_t s_dac_buf[BUF_SIZE] = {};
+static uint16_t s_adc_buf[BUF_SIZE] = {};
+static uint16_t s_dac_buf[BUF_SIZE] = {};
 
-static volatile bool s_data_ready;
-static volatile uint16_t* s_adc_ptr;
-static volatile uint16_t* s_dac_ptr;
 
 void DMA1_Channel1_IRQHandler(void) {
+    bool data_ready = false;
+    uint16_t* adc_ptr;
+    uint16_t* dac_ptr;
+
     if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
         LL_DMA_ClearFlag_HT1(DMA1);
-        s_data_ready = true;
-        s_adc_ptr = s_adc_buf;
-        s_dac_ptr = s_dac_buf;
+        data_ready = true;
+        adc_ptr = s_adc_buf;
+        dac_ptr = s_dac_buf;
     }
 
     if (LL_DMA_IsActiveFlag_TC1(DMA1)) {
         LL_DMA_ClearFlag_TC1(DMA1);
-        s_data_ready = true;
-        s_adc_ptr = s_adc_buf + BUF_SIZE_HALF;
-        s_dac_ptr = s_dac_buf + BUF_SIZE_HALF;
+        data_ready = true;
+        adc_ptr = s_adc_buf + BUF_SIZE_HALF;
+        dac_ptr = s_dac_buf + BUF_SIZE_HALF;
+    }
+
+    if (data_ready) {
+        DSP_Process(adc_ptr, dac_ptr);
     }
 }
 
@@ -172,11 +177,4 @@ void Codec_Init(void) {
     ADC_Init();
     TIM6_Init();
     LL_TIM_EnableCounter(TIM6);
-}
-
-void Codec_Handle() {
-    if (s_data_ready) {
-        s_data_ready = false;
-        DSP_Process((uint16_t*)s_adc_ptr, (uint16_t*)s_dac_ptr);
-    }
 }

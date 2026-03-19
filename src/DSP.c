@@ -8,12 +8,15 @@
 #include "OLED.h"
 #include "arm_math.h"
 
-#define Q15(x) ((q15_t)((x) * 32768.0f))
+// --- Data ---
 
 #define IN_N (BUF_SIZE_HALF)
 #define N (IN_N >> DECIMATE_EXP)
 
-static q15_t s_buffer[N];
+static float32_t s_buffer[N];
+static q15_t s_tmp_buffer[N];
+
+// --- Decimator ---
 
 #if (DECIMATE_EXP == 1 && DECIMATOR_TAPS == 31 && INTERPOLATOR_TAPS == 32)
 static const q15_t DECIMATOR_COEFFS[DECIMATOR_TAPS] = {
@@ -53,15 +56,52 @@ static q15_t
 static arm_fir_interpolate_instance_q15 s_interpolator;
 #endif
 
+static void PrepareInput(q15_t* in) {
+#if DECIMATE_EXP
+    arm_offset_q15((q15_t*)in, -2048, (q15_t*)in, IN_N);
+    arm_shift_q15((q15_t*)in, 4, (q15_t*)in, IN_N);
+
+    // second half of float buffer
+    arm_fir_decimate_q15(&s_decimator, (q15_t*)in, (q15_t*)s_tmp_buffer, IN_N);
+    arm_q15_to_float((q15_t*)s_tmp_buffer, s_buffer, N);
+#else
+    arm_offset_q15((q15_t*)in, -2048, (q15_t*)in, IN_N);
+    arm_shift_q15(s_buffer, 4, (q15_t*)in, IN_N);
+    arm_q15_to_float((q15_t*)in, s_buffer, N);
+#endif
+}
+
+static void PrepareOutput(q15_t* out) {
+#if DECIMATE_EXP
+    // first half of float buffer
+    arm_float_to_q15(s_buffer, (q15_t*)s_tmp_buffer, N);
+    arm_fir_interpolate_q15(
+        &s_interpolator,
+        (q15_t*)s_tmp_buffer,
+        (q15_t*)out,
+        N
+    );
+
+    arm_shift_q15((q15_t*)out, -4, (q15_t*)out, IN_N);
+    arm_offset_q15((q15_t*)out, 2048, (q15_t*)out, IN_N);
+#else
+    arm_float_to_q15(s_buffer, (q15_t*)out, N);
+    arm_shift_q15((q15_t*)out, -4, (q15_t*)out, IN_N);
+    arm_offset_q15((q15_t*)out, 2048, (q15_t*)out, IN_N);
+#endif
+}
+
+// --- FX ---
+
 static FX_EQ_Peak_t s_peak;
-static q15_t s_filter_coeffs[6];
-static q15_t s_filter_state[4];
-static arm_biquad_casd_df1_inst_q15 s_filter;
+static float32_t s_filter_coeffs[5];
+static float32_t s_filter_state[4];
+static arm_biquad_casd_df1_inst_f32 s_filter;
 
 static int CheckClipping() {
     size_t clipped = 0;
     for (size_t i = 0; i < N; i++) {
-        if (s_buffer[i] < Q15(-0.98f) || s_buffer[i] > Q15(0.98f))
+        if (s_buffer[i] < -0.98f || s_buffer[i] > 0.98f)
             clipped++;
         else
             clipped = 0;
@@ -72,6 +112,18 @@ static int CheckClipping() {
 }
 
 void DSP_Init() {
+    // Processing LED
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+    LL_GPIO_InitTypeDef led = {
+        .Pin = LL_GPIO_PIN_11,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO
+    };
+    LL_GPIO_Init(GPIOA, &led);
+    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
+
 #if DECIMATE_EXP
     arm_fir_decimate_init_q15(
         &s_decimator,
@@ -92,41 +144,28 @@ void DSP_Init() {
     );
 #endif
 
-    FX_EQ_Peak_Init(&s_peak, 800, 2, 0, s_filter_coeffs);
-    arm_biquad_cascade_df1_init_q15(
+    FX_EQ_Peak_Init(&s_peak, 800, 4, 0, s_filter_coeffs);
+    arm_biquad_cascade_df1_init_f32(
         &s_filter,
         1,
         s_filter_coeffs,
-        s_filter_state,
-        1
+        s_filter_state
     );
 }
 
 void DSP_Process(uint16_t* in, uint16_t* out) {
-#if DECIMATE_EXP
-    arm_offset_q15((q15_t*)in, -2048, (q15_t*)in, IN_N);
-    arm_shift_q15((q15_t*)in, 4, (q15_t*)in, IN_N);
-    arm_fir_decimate_q15(&s_decimator, (q15_t*)in, s_buffer, IN_N);
-#else
-    arm_offset_q15((q15_t*)in, -2048, s_buffer, IN_N);
-    arm_shift_q15(s_buffer, 4, s_buffer, IN_N);
-#endif
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11);
+    PrepareInput((q15_t*)in);
 
     if (CheckClipping())
         LED_On();
     else
         LED_Off();
 
-    arm_biquad_cascade_df1_q15(&s_filter, s_buffer, s_buffer, N);
+    arm_biquad_cascade_df1_f32(&s_filter, s_buffer, s_buffer, N);
 
-#if DECIMATE_EXP
-    arm_fir_interpolate_q15(&s_interpolator, s_buffer, (q15_t*)out, N);
-    arm_shift_q15((q15_t*)out, -4, (q15_t*)out, IN_N);
-    arm_offset_q15((q15_t*)out, 2048, (q15_t*)out, IN_N);
-#else
-    arm_shift_q15(s_buffer, -4, s_buffer, IN_N);
-    arm_offset_q15(s_buffer, 2048, (q15_t*)out, IN_N);
-#endif
+    PrepareOutput((q15_t*)out);
+    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
 }
 
 void DSP_UpdateParameters(int delta) {
