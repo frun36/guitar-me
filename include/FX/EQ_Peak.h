@@ -20,7 +20,7 @@ void FX_EQ_Peak_Init(
     float32_t f_c,
     float32_t q,
     float32_t g,
-    q15_t* coeffs
+    float32_t* coeffs
 );
 
 void FX_EQ_Peak_UpdateParameters(
@@ -28,5 +28,5 @@ void FX_EQ_Peak_UpdateParameters(
     float32_t df_c,
     float32_t dq,
     float32_t dg,
-    q15_t* coeffs
+    float32_t* coeffs
 );
