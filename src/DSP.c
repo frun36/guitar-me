@@ -2,14 +2,14 @@
 
 #include <stm32f303x8.h> // symbols for ARM math
 
-#include "stm32f3xx_ll_bus.h"
-#include "stm32f3xx_ll_gpio.h"
-
 #include "Config.h"
 #include "FX/EQ_Peak.h"
 #include "LED.h"
 #include "OLED.h"
 #include "arm_math.h"
+#include "stm32f3xx_ll_bus.h"
+#include "stm32f3xx_ll_gpio.h"
+#include "stm32f3xx_ll_utils.h"
 
 // --- Data ---
 
@@ -160,10 +160,10 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11);
     PrepareInput((q15_t*)in);
 
-    // if (CheckClipping())
-    //     LED_On();
-    // else
-    //     LED_Off();
+    if (CheckClipping())
+        LED_On();
+    else
+        LED_Off();
 
     arm_biquad_cascade_df1_f32(&s_filter, s_buffer, s_buffer, N);
 
@@ -171,15 +171,18 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
 }
 
-void DSP_UpdateParameters(int delta) {
-    if (delta == 0)
+void DSP_UpdateParameters(int delta, bool btn) {
+    static bool mode = false;
+    if (delta == 0 && !btn)
         return;
     // clear old line
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {
         OLED_SetPixel(i, (OLED_HEIGHT >> 1) + s_peak.g, false);
     }
 
-    FX_EQ_Peak_UpdateParameters(&s_peak, 0, 0, delta, s_filter_coeffs);
+    mode = btn ? !mode : mode;
+
+    FX_EQ_Peak_UpdateParameters(&s_peak, (btn ? (mode ? 500 : -500) : 0), 0, delta, s_filter_coeffs);
 
     // draw new line
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {

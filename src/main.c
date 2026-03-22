@@ -40,6 +40,6 @@ int main(void) {
     Codec_Init();
 
     while (1) {
-        DSP_UpdateParameters(Encoder_GetDelta());
+        DSP_UpdateParameters(Encoder_GetDelta(), Button_GetEvent() == BTN_PRESSED);
     }
 }
