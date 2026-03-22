@@ -7,6 +7,9 @@
 #include "LED.h"
 #include "OLED.h"
 #include "arm_math.h"
+#include "stm32f3xx_ll_bus.h"
+#include "stm32f3xx_ll_gpio.h"
+#include "stm32f3xx_ll_utils.h"
 
 // --- Data ---
 
@@ -168,15 +171,18 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
 }
 
-void DSP_UpdateParameters(int delta) {
-    if (delta == 0)
+void DSP_UpdateParameters(int delta, bool btn) {
+    static bool mode = false;
+    if (delta == 0 && !btn)
         return;
     // clear old line
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {
         OLED_SetPixel(i, (OLED_HEIGHT >> 1) + s_peak.g, false);
     }
 
-    FX_EQ_Peak_UpdateParameters(&s_peak, 0, 0, delta, s_filter_coeffs);
+    mode = btn ? !mode : mode;
+
+    FX_EQ_Peak_UpdateParameters(&s_peak, (btn ? (mode ? 500 : -500) : 0), 0, delta, s_filter_coeffs);
 
     // draw new line
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {
