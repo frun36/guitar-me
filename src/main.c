@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "Button.h"
 #include "Codec.h"
 #include "DSP.h"
 #include "Encoder.h"
@@ -31,6 +32,7 @@ int main(void) {
     printf("Helou\r\n");
 
     LED_Init();
+    Button_Init();
     Encoder_Init();
     OLED_Init();
 

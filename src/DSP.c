@@ -2,6 +2,9 @@
 
 #include <stm32f303x8.h> // symbols for ARM math
 
+#include "stm32f3xx_ll_bus.h"
+#include "stm32f3xx_ll_gpio.h"
+
 #include "Config.h"
 #include "FX/EQ_Peak.h"
 #include "LED.h"
@@ -157,10 +160,10 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11);
     PrepareInput((q15_t*)in);
 
-    if (CheckClipping())
-        LED_On();
-    else
-        LED_Off();
+    // if (CheckClipping())
+    //     LED_On();
+    // else
+    //     LED_Off();
 
     arm_biquad_cascade_df1_f32(&s_filter, s_buffer, s_buffer, N);
 

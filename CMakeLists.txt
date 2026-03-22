@@ -27,6 +27,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # User sources
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/main.c
+    src/Button.c
+    src/LED.c
     src/Codec.c
     src/DSP.c
     src/Encoder.c
