@@ -1,6 +1,6 @@
-build/
+firmware/build/
 literature/
-.cache/
-.gdb_history
-openocd.log
-compile_commands.json
+**/.cache/
+**/.gdb_history
+**/openocd.log
+**/compile_commands.json

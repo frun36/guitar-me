@@ -1,1 +1,0 @@
-guitar-me-cube/STM32F303XX_FLASH.ld
