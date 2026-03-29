@@ -11,6 +11,8 @@ FetchContent_Declare(
 )
 
 # Sources
+add_subdirectory(common)
+
 if(NOT IS_READABLE ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD})
   message(FATAL_ERROR "The specified BOARD directory '${BOARD}' does not exist")
 endif()
@@ -22,5 +24,3 @@ target_compile_options(CMSISDSP PRIVATE -w -O3)
 add_subdirectory(app)
 
 # add_subdirectory(drivers)
-#
-# add_subdirectory(utils)

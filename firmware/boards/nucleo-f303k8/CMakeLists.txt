@@ -49,7 +49,7 @@ set(STM32_Drivers_Src
 add_library(bsp_nucleo-f303k8 OBJECT
     ${STM32_Drivers_Src} 
     ${MX_Application_Src}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp_codec.c
 )
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU")
@@ -66,8 +66,10 @@ set(CMSISCORE "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS" CACHE INTERNAL "Path t
 
 target_sources(bsp_nucleo-f303k8
     PUBLIC FILE_SET HEADERS BASE_DIRS ../include
-    FILES ../include/bsp.h
+    FILES ../include/bsp_codec.h
 )
+
+target_link_libraries(bsp_nucleo-f303k8 PRIVATE common)
 
 target_link_options(bsp_nucleo-f303k8 INTERFACE 
     -T${CMAKE_CURRENT_SOURCE_DIR}/STM32F303XX_FLASH.ld 

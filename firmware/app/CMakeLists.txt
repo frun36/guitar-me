@@ -4,7 +4,6 @@ target_sources(app PRIVATE
     src/main.c
     src/Button.c
     src/LED.c
-    src/Codec.c
     src/DSP.c
     src/Encoder.c
     src/OLED.c
@@ -31,7 +30,7 @@ target_compile_options(app PRIVATE
     -fdiagnostics-color=always
 )
 
-target_link_libraries(app PRIVATE bsp CMSISDSP m)
+target_link_libraries(app PRIVATE common bsp CMSISDSP m)
 
 target_link_options(app PRIVATE
     -Wl,-Map=$<TARGET_FILE_DIR:app>/app.map

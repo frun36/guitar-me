@@ -2,7 +2,7 @@
 
 #include <stm32f303x8.h> // symbols for ARM math
 
-#include "Config.h"
+#include "config.h"
 #include "FX/EQ_Peak.h"
 #include "LED.h"
 #include "OLED.h"

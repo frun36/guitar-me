@@ -1,4 +1,4 @@
-#include "Codec.h"
+#include "bsp_codec.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -11,12 +11,12 @@
 #include <stm32f3xx_ll_tim.h>
 #include <stm32f3xx_ll_utils.h>
 
-#include "Config.h"
-#include "DSP.h"
+#include "config.h"
 
-static uint16_t s_adc_buf[BUF_SIZE] = {};
-static uint16_t s_dac_buf[BUF_SIZE] = {};
+static uint16_t s_adc_buf[BUF_SIZE];
+static uint16_t s_dac_buf[BUF_SIZE];
 
+static BSP_Codec_Callback_t s_dsp_process;
 
 void DMA1_Channel1_IRQHandler(void) {
     bool data_ready = false;
@@ -38,11 +38,11 @@ void DMA1_Channel1_IRQHandler(void) {
     }
 
     if (data_ready) {
-        DSP_Process(adc_ptr, dac_ptr);
+        s_dsp_process(adc_ptr, dac_ptr);
     }
 }
 
-static void TIM6_Init() {
+static void TIM6_Init(void) {
     LL_TIM_InitTypeDef timer = {
         .Prescaler = 0,
         .CounterMode = LL_TIM_COUNTERMODE_UP,
@@ -52,7 +52,7 @@ static void TIM6_Init() {
     LL_TIM_SetTriggerOutput(TIM6, LL_TIM_TRGO_UPDATE);
 }
 
-static void ADC_Init() {
+static void ADC_Init(void) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_ADC12);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
@@ -128,7 +128,7 @@ static void ADC_Init() {
     LL_ADC_REG_StartConversion(ADC1);
 }
 
-static void DAC_Init() {
+static void DAC_Init(void) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
@@ -172,7 +172,9 @@ static void DAC_Init() {
     LL_DAC_EnableDMAReq(DAC1, LL_DAC_CHANNEL_1);
 }
 
-void Codec_Init(void) {
+void BSP_Codec_Init(BSP_Codec_Callback_t dsp_process) {
+    s_dsp_process = dsp_process;
+
     DAC_Init();
     ADC_Init();
     TIM6_Init();

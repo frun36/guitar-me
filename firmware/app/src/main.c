@@ -1,20 +1,21 @@
 #include <stdio.h>
 
 #include "Button.h"
-#include "Codec.h"
 #include "DSP.h"
 #include "Encoder.h"
 #include "LED.h"
 #include "OLED.h"
+#include "bsp_codec.h"
 #include "stm32f303x8.h"
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_usart.h"
 
 extern void SystemClock_Config(void);
-extern void MX_USART2_UART_Init();
+extern void MX_USART2_UART_Init(void);
 
 // For printf
 int _write(int file, char* ptr, int len) {
+    (void)file;
     for (int i = 0; i < len; i++) {
         while (!LL_USART_IsActiveFlag_TXE(USART2)) {}
         LL_USART_TransmitData8(USART2, ptr[i]);
@@ -37,9 +38,12 @@ int main(void) {
     OLED_Init();
 
     DSP_Init();
-    Codec_Init();
+    BSP_Codec_Init(DSP_Process);
 
     while (1) {
-        DSP_UpdateParameters(Encoder_GetDelta(), Button_GetEvent() == BTN_PRESSED);
+        DSP_UpdateParameters(
+            Encoder_GetDelta(),
+            Button_GetEvent() == BTN_PRESSED
+        );
     }
 }
