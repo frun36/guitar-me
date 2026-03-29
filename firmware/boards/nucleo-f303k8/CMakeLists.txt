@@ -49,6 +49,7 @@ set(STM32_Drivers_Src
 add_library(bsp_nucleo-f303k8 OBJECT
     ${STM32_Drivers_Src} 
     ${MX_Application_Src}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp_codec.c
 )
 
