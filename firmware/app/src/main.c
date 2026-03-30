@@ -3,16 +3,16 @@
 #include "Button.h"
 #include "DSP.h"
 #include "Encoder.h"
-#include "LED.h"
-#include "oled.h"
 #include "bsp.h"
 #include "bsp_codec.h"
+#include "bsp_led.h"
+#include "oled.h"
 
 int main(void) {
     BSP_Init();
     printf("Helou\r\n");
 
-    LED_Init();
+    BSP_LED_Init();
     Button_Init();
     Encoder_Init();
     OLED_Init();

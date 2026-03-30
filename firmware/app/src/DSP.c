@@ -2,11 +2,11 @@
 
 #include <stm32f303x8.h> // symbols for ARM math
 
-#include "config.h"
 #include "FX/EQ_Peak.h"
-#include "LED.h"
-#include "oled.h"
 #include "arm_math.h"
+#include "bsp_led.h"
+#include "config.h"
+#include "oled.h"
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_gpio.h"
 #include "stm32f3xx_ll_utils.h"
@@ -115,18 +115,6 @@ static int CheckClipping() {
 }
 
 void DSP_Init() {
-    // Processing LED
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-    LL_GPIO_InitTypeDef led = {
-        .Pin = LL_GPIO_PIN_11,
-        .Mode = LL_GPIO_MODE_OUTPUT,
-        .Speed = LL_GPIO_SPEED_FREQ_LOW,
-        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-        .Pull = LL_GPIO_PULL_NO
-    };
-    LL_GPIO_Init(GPIOA, &led);
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
-
 #if DECIMATE_EXP
     arm_fir_decimate_init_q15(
         &s_decimator,
@@ -157,18 +145,18 @@ void DSP_Init() {
 }
 
 void DSP_Process(uint16_t* in, uint16_t* out) {
-    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_11);
+    BSP_LED_On(LED2);
     PrepareInput((q15_t*)in);
 
     if (CheckClipping())
-        LED_On();
+        BSP_LED_On(LED1);
     else
-        LED_Off();
+        BSP_LED_Off(LED1);
 
     arm_biquad_cascade_df1_f32(&s_filter, s_buffer, s_buffer, N);
 
     PrepareOutput((q15_t*)out);
-    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_11);
+    BSP_LED_Off(LED2);
 }
 
 void DSP_UpdateParameters(int delta, bool btn) {
@@ -182,7 +170,13 @@ void DSP_UpdateParameters(int delta, bool btn) {
 
     mode = btn ? !mode : mode;
 
-    FX_EQ_Peak_UpdateParameters(&s_peak, (btn ? (mode ? 500 : -500) : 0), 0, delta, s_filter_coeffs);
+    FX_EQ_Peak_UpdateParameters(
+        &s_peak,
+        (btn ? (mode ? 500 : -500) : 0),
+        0,
+        delta,
+        s_filter_coeffs
+    );
 
     // draw new line
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {

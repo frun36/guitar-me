@@ -52,6 +52,7 @@ add_library(bsp_nucleo-f303k8 OBJECT
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp_codec.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp_i2c.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bsp_led.c
 )
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU")
