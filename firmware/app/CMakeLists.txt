@@ -6,7 +6,6 @@ target_sources(app PRIVATE
     src/LED.c
     src/DSP.c
     src/Encoder.c
-    src/OLED.c
     src/FX/EQ_Peak.c
 )
 
@@ -30,7 +29,13 @@ target_compile_options(app PRIVATE
     -fdiagnostics-color=always
 )
 
-target_link_libraries(app PRIVATE common bsp CMSISDSP m)
+target_link_libraries(app PRIVATE 
+    common
+    bsp 
+    drivers 
+    CMSISDSP 
+    m
+)
 
 target_link_options(app PRIVATE
     -Wl,-Map=$<TARGET_FILE_DIR:app>/app.map

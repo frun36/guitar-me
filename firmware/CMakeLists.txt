@@ -23,4 +23,4 @@ target_compile_options(CMSISDSP PRIVATE -w -O3)
 
 add_subdirectory(app)
 
-# add_subdirectory(drivers)
+add_subdirectory(drivers)

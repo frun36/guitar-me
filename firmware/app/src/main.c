@@ -4,7 +4,7 @@
 #include "DSP.h"
 #include "Encoder.h"
 #include "LED.h"
-#include "OLED.h"
+#include "oled.h"
 #include "bsp.h"
 #include "bsp_codec.h"
 

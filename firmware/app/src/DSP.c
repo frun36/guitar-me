@@ -5,7 +5,7 @@
 #include "config.h"
 #include "FX/EQ_Peak.h"
 #include "LED.h"
-#include "OLED.h"
+#include "oled.h"
 #include "arm_math.h"
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_gpio.h"
