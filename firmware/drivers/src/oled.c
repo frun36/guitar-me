@@ -1,8 +1,9 @@
 #include "oled.h"
+
 #include <stdbool.h>
 
+#include "bsp.h"
 #include "bsp_i2c.h"
-#include "stm32f3xx_ll_utils.h"
 
 #define SSD1306_I2C_ADDR 0x78
 
@@ -40,7 +41,7 @@ void OLED_Init(void) {
     WriteCommand(0xAF); // On
 
     WriteCommand(0xA5); // Flash white
-    LL_mDelay(100);
+    BSP_Delay(100);
     OLED_Flush();
     WriteCommand(0xA4); // Reset to RAM
 }

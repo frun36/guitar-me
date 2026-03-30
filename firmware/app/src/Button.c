@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "bsp.h"
 #include "stm32f303x8.h"
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_exti.h"
@@ -20,11 +21,11 @@ static inline void HandlePress() {
 void EXTI0_IRQHandler() {
     if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_0)) {
         LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_0);
-        uint32_t curr_time = SysTick->VAL;
+        uint32_t curr_time = BSP_GetTime();
         // Bounce occurs during press and release
         // checks edge was falling and debounce period elapsed
         if ((LL_GPIO_ReadInputPort(GPIOB) & LL_GPIO_PIN_0)
-            && s_last_press_time - curr_time > DEBOUNCE_MS) {
+            && curr_time - s_last_press_time > DEBOUNCE_MS) {
             HandlePress();
         }
         s_last_press_time = curr_time;

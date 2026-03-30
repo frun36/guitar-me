@@ -9,8 +9,8 @@
 #include <stm32f3xx_ll_gpio.h>
 #include <stm32f3xx_ll_system.h>
 #include <stm32f3xx_ll_tim.h>
-#include <stm32f3xx_ll_utils.h>
 
+#include "bsp.h"
 #include "config.h"
 
 static uint16_t s_adc_buf[BUF_SIZE];
@@ -166,7 +166,7 @@ static void DAC_Init(void) {
     LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
 
-    LL_mDelay(10);
+    BSP_Delay(10);
 
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
     LL_DAC_EnableDMAReq(DAC1, LL_DAC_CHANNEL_1);

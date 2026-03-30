@@ -12,10 +12,11 @@ int main(void) {
     BSP_Init();
     printf("Helou\r\n");
 
+    OLED_Init();
+
     BSP_LED_Init();
     Button_Init();
     Encoder_Init();
-    OLED_Init();
 
     DSP_Init();
     BSP_Codec_Init(DSP_Process);

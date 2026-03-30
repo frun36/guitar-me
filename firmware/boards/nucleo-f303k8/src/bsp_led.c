@@ -14,6 +14,8 @@ static inline GPIO_TypeDef* GetLedPort(BSP_LED_t led) {
             return LED1_PORT;
         case LED2:
             return LED2_PORT;
+        default:
+            return LED1_PORT;
     }
 }
 
@@ -23,6 +25,8 @@ static inline uint32_t GetLedPin(BSP_LED_t led) {
             return LED1_PIN;
         case LED2:
             return LED2_PIN;
+        default:
+            return LED1_PIN;
     }
 }
 
