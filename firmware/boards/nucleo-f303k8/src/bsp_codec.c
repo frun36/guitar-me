@@ -121,7 +121,7 @@ static void ADC_Init(void) {
     LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_1);
     LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
 
-    NVIC_SetPriority(DMA1_Channel1_IRQn, 0);
+    NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 0));
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);

@@ -1,10 +1,9 @@
-#include "Encoder.h"
+#include "bsp_control.h"
+#include "stm32f3xx_ll_bus.h"
+#include "stm32f3xx_ll_gpio.h"
+#include "stm32f3xx_ll_tim.h"
 
-#include <stm32f3xx_ll_bus.h>
-#include <stm32f3xx_ll_gpio.h>
-#include <stm32f3xx_ll_tim.h>
-
-void Encoder_Init() {
+static void Enc1_Init(void) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
 
@@ -48,18 +47,33 @@ void Encoder_Init() {
     LL_TIM_EnableCounter(TIM3);
 }
 
-int GetPosition() {
-    int pos = LL_TIM_GetCounter(TIM3); // max 0xFFFF
-    // wrap at half resolution, should be good enough
-    if (pos & 0x8000)
-        pos -= 0xFFFF;
-    return pos >> 2;
+static void Btn1_Init(void) {
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+
+    LL_GPIO_InitTypeDef btn = {
+        .Pin = LL_GPIO_PIN_0,
+        .Mode = LL_GPIO_MODE_INPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_UP
+    };
+
+    LL_GPIO_Init(GPIOB, &btn);
 }
 
-int Encoder_GetDelta() {
-    static int prev = 0;
-    int curr = GetPosition();
-    int delta = curr - prev;
-    prev = curr;
-    return delta;
+void BSP_Control_Init(void) {
+    Btn1_Init();
+    Enc1_Init();
+}
+
+bool BSP_Control_ReadBtn1(void) {
+    return !LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0);
+}
+
+int32_t BSP_Control_ReadEnc1(void) {
+    int32_t pos = LL_TIM_GetCounter(TIM3); // max 0xFFFF
+    // wrap at half resolution, should be sufficient
+    if (pos & 0x8000)
+        pos -= 0xFFFF;
+    return pos >> 2; // each tick counts as 4
 }

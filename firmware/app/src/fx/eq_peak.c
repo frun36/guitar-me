@@ -1,9 +1,8 @@
-#include "FX/EQ_Peak.h"
+#include "fx/eq_peak.h"
 #include <math.h>
 #include <stm32f303x8.h> // symbols for ARM math
 
 #include "config.h"
-#include "arm_math.h"
 
 #define LN10_OVER_40 0.05756463f
 

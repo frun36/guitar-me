@@ -1,15 +1,12 @@
-#include "DSP.h"
+#include "dsp.h"
 
 #include <stm32f303x8.h> // symbols for ARM math
 
-#include "FX/EQ_Peak.h"
+#include "fx/eq_peak.h"
 #include "arm_math.h"
 #include "bsp_led.h"
 #include "config.h"
 #include "oled.h"
-#include "stm32f3xx_ll_bus.h"
-#include "stm32f3xx_ll_gpio.h"
-#include "stm32f3xx_ll_utils.h"
 
 // --- Data ---
 
@@ -101,7 +98,7 @@ static float32_t s_filter_coeffs[5];
 static float32_t s_filter_state[4];
 static arm_biquad_casd_df1_inst_f32 s_filter;
 
-static int CheckClipping() {
+static int CheckClipping(void) {
     size_t clipped = 0;
     for (size_t i = 0; i < N; i++) {
         if (s_buffer[i] < -0.98f || s_buffer[i] > 0.98f)
@@ -114,7 +111,7 @@ static int CheckClipping() {
     return 0;
 }
 
-void DSP_Init() {
+void DSP_Init(void) {
 #if DECIMATE_EXP
     arm_fir_decimate_init_q15(
         &s_decimator,

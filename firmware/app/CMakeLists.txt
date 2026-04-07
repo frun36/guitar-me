@@ -2,10 +2,9 @@ add_executable(app)
 
 target_sources(app PRIVATE
     src/main.c
-    src/Button.c
-    src/DSP.c
-    src/Encoder.c
-    src/FX/EQ_Peak.c
+    src/control.c
+    src/dsp.c
+    src/fx/eq_peak.c
 )
 
 target_include_directories(app PRIVATE

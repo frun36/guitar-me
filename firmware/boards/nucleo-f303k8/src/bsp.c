@@ -4,7 +4,6 @@
 #include "stm32f3xx_ll_bus.h"
 #include "stm32f3xx_ll_cortex.h"
 #include "stm32f3xx_ll_usart.h"
-#include "stm32f3xx_ll_utils.h"
 
 extern void SystemClock_Config(void);
 extern void MX_USART2_UART_Init(void);
@@ -26,7 +25,8 @@ void BSP_Init(void) {
     SystemClock_Config();
     MX_USART2_UART_Init();
 
-    NVIC_SetPriority(SysTick_IRQn, 0);
+    NVIC_SetPriorityGrouping(5); // 2 bits preempt, 2 bits subpriority
+    NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
     LL_SYSTICK_EnableIT();
 }
 
@@ -36,7 +36,6 @@ BSP_TickHandler_t s_tick_handler;
 // Ideally, audio processing <1ms
 void SysTick_Handler(void) {
     s_tick++;
-    BSP_LED_Toggle(LED1);
     if (s_tick_handler) {
         s_tick_handler(s_tick);
     }
