@@ -46,11 +46,7 @@ static int32_t EncoderFsm(int32_t (*read_enc)(void), int32_t* prev_count) {
     return diff;
 }
 
-void Control_Tick(uint32_t ms) {
-    // Every 16 ms
-    if (ms % 16)
-        return;
-
+void Control_Tick(void) {
     Control_Event_t evt;
 
     // BTN1

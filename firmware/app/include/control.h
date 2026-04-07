@@ -11,6 +11,6 @@ typedef struct {
 } Control_Event_t;
 
 void Control_Init(void);
-void Control_Tick(uint32_t ms);
+void Control_Tick(void);
 
 Control_Event_t Control_PopEvent(void);
