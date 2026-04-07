@@ -11,16 +11,38 @@ FetchContent_Declare(
 )
 
 # Sources
-add_subdirectory(common)
+if(BOARD)
+    if(NOT IS_READABLE ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD})
+      message(FATAL_ERROR "The specified BOARD directory '${BOARD}' does not exist")
+    endif()
+    add_subdirectory(boards/${BOARD})
 
-if(NOT IS_READABLE ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD})
-  message(FATAL_ERROR "The specified BOARD directory '${BOARD}' does not exist")
+    FetchContent_MakeAvailable(cmsis_dsp)
+    target_compile_options(CMSISDSP PRIVATE -w -O3)
+
+    add_subdirectory(common)
+
+    add_subdirectory(app)
+
+    add_subdirectory(drivers)
 endif()
-add_subdirectory(boards/${BOARD})
 
-FetchContent_MakeAvailable(cmsis_dsp)
-target_compile_options(CMSISDSP PRIVATE -w -O3)
+# Tests
+option(ENABLE_TESTING "Enable Unity unit tests" OFF)
 
-add_subdirectory(app)
+if(ENABLE_TESTING)
+    enable_testing()
 
-add_subdirectory(drivers)
+    add_compile_options(-fsanitize=address -g -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address)
+
+    FetchContent_Declare(
+        unity
+        GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
+        GIT_TAG        v2.6.1
+    )
+    FetchContent_MakeAvailable(unity)
+
+    add_subdirectory(tests)
+endif()
+

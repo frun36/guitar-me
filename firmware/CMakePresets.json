@@ -49,6 +49,16 @@
       "name": "nucleo-f303k8-release",
       "displayName": "NUCLEO-F303K8 (Release)",
       "inherits": ["base", "nucleo-f303k8-base", "release-base"]
+    },
+    {
+      "name": "tests",
+      "displayName": "Host Unit Tests",
+      "inherits": ["base"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_TESTING": "ON",
+        "BOARD": ""
+      }
     }
   ],
 
@@ -62,6 +72,18 @@
       "name": "nucleo-f303k8-release",
       "configurePreset": "nucleo-f303k8-release",
       "targets": "app"
+    },
+    {
+      "name": "tests",
+      "configurePreset": "tests"
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "tests",
+      "configurePreset": "tests",
+      "output": {"outputOnFailure": true}
     }
   ]
 }
