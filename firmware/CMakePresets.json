@@ -1,0 +1,89 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "environment": {
+        "CFLAGS": "-Wall -Wextra -Wpedantic -Wunused-parameter -Winit-self -Wcast-align -Wconversion -Wnull-dereference -Wduplicated-cond -Wsign-conversion -Wlogical-op"
+      }
+    },
+    {
+      "name": "debug-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "nucleo-f303k8-base",
+      "hidden": true,
+      "toolchainFile": "${sourceDir}/boards/nucleo-f303k8/cmake/toolchain.cmake",
+      "cacheVariables": {
+        "BOARD": "nucleo-f303k8"
+      }
+    },
+    {
+      "name": "nucleo-f303k8-debug",
+      "displayName": "NUCLEO-F303K8 (Debug)",
+      "inherits": ["base", "nucleo-f303k8-base", "debug-base"]
+    },
+    {
+      "name": "nucleo-f303k8-release",
+      "displayName": "NUCLEO-F303K8 (Release)",
+      "inherits": ["base", "nucleo-f303k8-base", "release-base"]
+    },
+    {
+      "name": "tests",
+      "displayName": "Host Unit Tests",
+      "inherits": ["base"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_TESTING": "ON",
+        "BOARD": ""
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "nucleo-f303k8-debug",
+      "configurePreset": "nucleo-f303k8-debug",
+      "targets": "app"
+    },
+    {
+      "name": "nucleo-f303k8-release",
+      "configurePreset": "nucleo-f303k8-release",
+      "targets": "app"
+    },
+    {
+      "name": "tests",
+      "configurePreset": "tests"
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "tests",
+      "configurePreset": "tests",
+      "output": {"outputOnFailure": true}
+    }
+  ]
+}

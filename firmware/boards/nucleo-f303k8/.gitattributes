@@ -1,0 +1,5 @@
+cmake/** linguist-generated=true
+Core/** linguist-generated=true
+Drivers/** linguist-generated=true
+startup_stm32f303x8.s linguist-generated=true
+linguist-generated=true linguist-generated=true
