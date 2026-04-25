@@ -2,10 +2,10 @@
 
 #include <stm32f303x8.h> // symbols for ARM math
 
-#include "fx/eq_peak.h"
 #include "arm_math.h"
 #include "bsp_led.h"
 #include "config.h"
+#include "fx/eq.h"
 #include "oled.h"
 
 // --- Data ---
@@ -93,7 +93,7 @@ static void PrepareOutput(q15_t* out) {
 
 // --- FX ---
 
-static FX_EQ_Peak_t s_peak;
+static FX_EQ_t s_peak;
 static float32_t s_filter_coeffs[5];
 static float32_t s_filter_state[4];
 static arm_biquad_casd_df1_inst_f32 s_filter;
@@ -132,7 +132,7 @@ void DSP_Init(void) {
     );
 #endif
 
-    FX_EQ_Peak_Init(&s_peak, 800, 4, 0, s_filter_coeffs);
+    FX_EQ_Init(&s_peak, FX_EQ_PEAK, 800, 4, 0, s_filter_coeffs);
     arm_biquad_cascade_df1_init_f32(
         &s_filter,
         1,
@@ -167,13 +167,7 @@ void DSP_UpdateParameters(int delta, bool btn) {
 
     mode = btn ? !mode : mode;
 
-    FX_EQ_Peak_UpdateParameters(
-        &s_peak,
-        (btn ? (mode ? 500 : -500) : 0),
-        0,
-        delta,
-        s_filter_coeffs
-    );
+    FX_EQ_Update(&s_peak, (btn ? (mode ? 500 : -500) : 0), 0, delta);
 
     // draw new line
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {

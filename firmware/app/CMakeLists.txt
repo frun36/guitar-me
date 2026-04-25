@@ -4,7 +4,7 @@ target_sources(app PRIVATE
     src/main.c
     src/control.c
     src/dsp.c
-    src/fx/eq_peak.c
+    src/fx/eq.c
 )
 
 target_include_directories(app PRIVATE
