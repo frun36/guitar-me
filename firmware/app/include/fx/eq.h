@@ -26,9 +26,6 @@ void FX_EQ_Init(
     float32_t* coeffs
 );
 
-void FX_EQ_Update(
-    FX_EQ_t* f,
-    float32_t df_c,
-    float32_t dq,
-    float32_t dg
-);
+void FX_EQ_Update(FX_EQ_t* f, float32_t df_c, float32_t dq, float32_t dg);
+
+float32_t FX_EQ_ComputeFrequencyResponse(FX_EQ_t* f, size_t i);

@@ -25,6 +25,8 @@ int main(void) {
     while (1) {
         curr_time = BSP_GetTime();
         if (curr_time - last_control_check_time >= 10) {
+            last_control_check_time = curr_time;
+            BSP_LED_On(LED2);
             Control_Tick();
             int32_t encoder_delta = 0;
             bool was_btn_pressed = false;
@@ -38,6 +40,7 @@ int main(void) {
             } while (evt.type != EVT_NONE);
 
             DSP_UpdateParameters(encoder_delta, was_btn_pressed);
+            BSP_LED_Off(LED2);
         }
     }
 }

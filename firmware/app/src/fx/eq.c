@@ -101,10 +101,38 @@ void FX_EQ_Init(
     f->update_coeffs(f);
 }
 
-void FX_EQ_Update(FX_EQ_t* p, float32_t df_c, float32_t dq, float32_t dg) {
-    p->f_c += df_c;
-    p->q += dq;
-    p->g += dg;
-    UpdateComputationParameters(p);
-    p->update_coeffs(p);
+void FX_EQ_Update(FX_EQ_t* f, float32_t df_c, float32_t dq, float32_t dg) {
+    f->f_c += df_c;
+    f->q += dq;
+    f->g += dg;
+    UpdateComputationParameters(f);
+    f->update_coeffs(f);
+}
+
+#include "fx/eq_w_lut.h"
+
+float32_t FX_EQ_ComputeFrequencyResponse(FX_EQ_t* f, size_t i) {
+    float32_t cos_w = g_cos_w[i];
+    float32_t sin_w = g_sin_w[i];
+
+    float32_t cos_2w = g_cos_2w[i];
+    float32_t sin_2w = g_sin_2w[i];
+
+    float32_t b0 = f->coeffs[0];
+    float32_t b1 = f->coeffs[1];
+    float32_t b2 = f->coeffs[2];
+    float32_t a1 = -f->coeffs[3];
+    float32_t a2 = -f->coeffs[4];
+
+    float32_t num_r = b0 + (b1 * cos_w) + (b2 * cos_2w);
+    float32_t num_i = -((b1 * sin_w) + (b2 * sin_2w));
+
+    float32_t den_r = 1.0 + a1 * cos_w + a2 * cos_2w;
+    float32_t den_i = -((a1 * sin_w) + (a2 * sin_2w));
+
+    // 20log10(x) = 10log10(x^2), avoids sqrt for magnitude
+    return 10.f
+        * log10f(
+               (num_r * num_r + num_i * num_i) / (den_r * den_r + den_i * den_i)
+        );
 }

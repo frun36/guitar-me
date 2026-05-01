@@ -166,23 +166,28 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
 }
 
 void DSP_UpdateParameters(int delta, bool btn) {
-    static size_t filter_idx = 0;
+    static size_t s_filter_idx = 0;
+    static uint8_t s_line_shape[OLED_WIDTH];
     if (delta == 0 && !btn)
         return;
 
-    if (btn) filter_idx = (filter_idx + 1) % N_FILTERS;
+    if (btn)
+        s_filter_idx = (s_filter_idx + 1) % N_FILTERS;
 
-    uint32_t line_len = OLED_WIDTH / N_FILTERS;
     // clear old line
-    for (uint32_t i = 0; i < line_len; i++) {
-        OLED_SetPixel(filter_idx * line_len + i, (OLED_HEIGHT >> 1) + s_eq[filter_idx].g, false);
+    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
+        OLED_SetPixel(i, s_line_shape[i], false);
     }
 
-    FX_EQ_Update(s_eq + filter_idx, 0, 0, delta);
+    FX_EQ_Update(s_eq + s_filter_idx, 0, 0, delta);
 
     // draw new line
-    for (uint32_t i = 0; i < line_len; i++) {
-        OLED_SetPixel(filter_idx * line_len + i, (OLED_HEIGHT >> 1) + s_eq[filter_idx].g, true);
+    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
+        s_line_shape[i] = OLED_HEIGHT / 2;
+        for (uint32_t j = 0; j < N_FILTERS; j++) {
+            s_line_shape[i] += FX_EQ_ComputeFrequencyResponse(s_eq + j, i);
+        }
+        OLED_SetPixel(i, s_line_shape[i], true);
     }
     OLED_Flush();
 }
