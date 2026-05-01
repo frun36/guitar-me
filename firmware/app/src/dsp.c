@@ -16,7 +16,6 @@
 #define N_FILTERS 3
 
 static float32_t s_buffer[N];
-static q15_t s_tmp_buffer[N];
 
 // --- Decimator ---
 
@@ -50,6 +49,8 @@ static const q15_t INTERPOLATOR_COEFFS[INTERPOLATOR_TAPS] = {
 #endif
 
 #if DECIMATE_EXP
+static q15_t s_tmp_buffer[N];
+
 static q15_t s_decimator_state[DECIMATOR_TAPS + IN_N - 1];
 static arm_fir_decimate_instance_q15 s_decimator;
 
@@ -68,7 +69,7 @@ static void PrepareInput(q15_t* in) {
     arm_q15_to_float((q15_t*)s_tmp_buffer, s_buffer, N);
 #else
     arm_offset_q15((q15_t*)in, -2048, (q15_t*)in, IN_N);
-    arm_shift_q15(s_buffer, 4, (q15_t*)in, IN_N);
+    arm_shift_q15((q15_t*)in, 4, (q15_t*)in, IN_N);
     arm_q15_to_float((q15_t*)in, s_buffer, N);
 #endif
 }
