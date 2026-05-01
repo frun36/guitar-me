@@ -13,6 +13,8 @@
 #define IN_N (BUF_SIZE_HALF)
 #define N (IN_N >> DECIMATE_EXP)
 
+#define N_FILTERS 3
+
 static float32_t s_buffer[N];
 static q15_t s_tmp_buffer[N];
 
@@ -93,9 +95,10 @@ static void PrepareOutput(q15_t* out) {
 
 // --- FX ---
 
-static FX_EQ_t s_peak;
-static float32_t s_filter_coeffs[5];
-static float32_t s_filter_state[4];
+static FX_EQ_t s_eq[N_FILTERS];
+
+static float32_t s_filter_coeffs[5 * N_FILTERS];
+static float32_t s_filter_state[4 * N_FILTERS];
 static arm_biquad_casd_df1_inst_f32 s_filter;
 
 static int CheckClipping(void) {
@@ -132,10 +135,15 @@ void DSP_Init(void) {
     );
 #endif
 
-    FX_EQ_Init(&s_peak, FX_EQ_PEAK, 800, 4, 0, s_filter_coeffs);
+#if N_FILTERS == 3
+    FX_EQ_Init(s_eq, FX_EQ_LOW_SHELF, 100, 1, 0, s_filter_coeffs);
+    FX_EQ_Init(s_eq + 1, FX_EQ_PEAK, 800, 4, 0, s_filter_coeffs + 5);
+    FX_EQ_Init(s_eq + 2, FX_EQ_HIGH_SHELF, 2000, 1, 0, s_filter_coeffs + 10);
+#endif
+
     arm_biquad_cascade_df1_init_f32(
         &s_filter,
-        1,
+        N_FILTERS,
         s_filter_coeffs,
         s_filter_state
     );
@@ -157,21 +165,23 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
 }
 
 void DSP_UpdateParameters(int delta, bool btn) {
-    static bool mode = false;
+    static size_t filter_idx = 0;
     if (delta == 0 && !btn)
         return;
+
+    if (btn) filter_idx = (filter_idx + 1) % N_FILTERS;
+
+    uint32_t line_len = OLED_WIDTH / N_FILTERS;
     // clear old line
-    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
-        OLED_SetPixel(i, (OLED_HEIGHT >> 1) + s_peak.g, false);
+    for (uint32_t i = 0; i < line_len; i++) {
+        OLED_SetPixel(filter_idx * line_len + i, (OLED_HEIGHT >> 1) + s_eq[filter_idx].g, false);
     }
 
-    mode = btn ? !mode : mode;
-
-    FX_EQ_Update(&s_peak, (btn ? (mode ? 500 : -500) : 0), 0, delta);
+    FX_EQ_Update(s_eq + filter_idx, 0, 0, delta);
 
     // draw new line
-    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
-        OLED_SetPixel(i, (OLED_HEIGHT >> 1) + s_peak.g, true);
+    for (uint32_t i = 0; i < line_len; i++) {
+        OLED_SetPixel(filter_idx * line_len + i, (OLED_HEIGHT >> 1) + s_eq[filter_idx].g, true);
     }
     OLED_Flush();
 }
