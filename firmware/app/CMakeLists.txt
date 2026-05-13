@@ -3,8 +3,10 @@ add_executable(app)
 target_sources(app PRIVATE
     src/main.c
     src/control.c
+    src/display.c
     src/dsp.c
     src/fx/eq.c
+    src/fx/eq_w_lut.c
 )
 
 target_include_directories(app PRIVATE

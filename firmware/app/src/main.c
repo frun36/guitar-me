@@ -4,6 +4,7 @@
 #include "bsp_codec.h"
 #include "bsp_led.h"
 #include "control.h"
+#include "display.h"
 #include "dsp.h"
 #include "oled.h"
 
@@ -22,9 +23,13 @@ int main(void) {
     uint32_t last_control_check_time = 0;
     uint32_t curr_time = 0;
 
+    Display_UpdateCurve();
+
     while (1) {
         curr_time = BSP_GetTime();
         if (curr_time - last_control_check_time >= 10) {
+            last_control_check_time = curr_time;
+            BSP_LED_On(LED2);
             Control_Tick();
             int32_t encoder_delta = 0;
             bool was_btn_pressed = false;
@@ -37,7 +42,10 @@ int main(void) {
                     encoder_delta += evt.data;
             } while (evt.type != EVT_NONE);
 
-            DSP_UpdateParameters(encoder_delta, was_btn_pressed);
+            if (DSP_UpdateParameters(encoder_delta, was_btn_pressed))
+                Display_UpdateCurve();
+
+            BSP_LED_Off(LED2);
         }
     }
 }

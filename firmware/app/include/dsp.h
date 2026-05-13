@@ -5,4 +5,5 @@
 
 void DSP_Init(void);
 void DSP_Process(uint16_t* in, uint16_t* out);
-void DSP_UpdateParameters(int delta, bool btn);
+void DSP_GetFrequencyResponseCurve(uint8_t* line_shape);
+bool DSP_UpdateParameters(int delta, bool btn);
