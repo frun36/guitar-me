@@ -77,21 +77,46 @@ void FX_EQ_Init(
     float32_t f_c,
     float32_t q,
     float32_t g,
-    float32_t* coeffs
+    float32_t* coeffs,
+    FX_Parameter_t* p
 ) {
     f->f_c = f_c;
+    p[1].val = &f->f_c;
+    p[1].step_type = FX_PARAMETER_EXP;
+    p[1].step = 1.1;
+
     f->q = q;
+    p[2].val = &f->q;
+    p[2].min = 0.1;
+    p[2].step_type = FX_PARAMETER_EXP;
+    p[2].step = 1.2;
+    p[2].max = 8;
+
     f->g = g;
+    p[0].val = &f->g;
+    p[0].min = -18;
+    p[0].step_type = FX_PARAMETER_LIN;
+    p[0].step = 1;
+    p[0].max = 18;
     f->coeffs = coeffs;
     switch (shape) {
         case FX_EQ_PEAK:
             f->update_coeffs = Peak_UpdateCoefficients;
+            // f_c
+            p[1].min = 200;
+            p[1].max = 4000;
             break;
         case FX_EQ_LOW_SHELF:
             f->update_coeffs = LowShelf_UpdateCoefficients;
+            // f_c
+            p[1].min = 40;
+            p[1].max = 300;
             break;
         case FX_EQ_HIGH_SHELF:
             f->update_coeffs = HighShelf_UpdateCoefficients;
+            // f_c
+            p[1].min = 2000;
+            p[1].max = 16000;
             break;
         default:
             f->update_coeffs = Neutral_UpdateCoefficients;
@@ -101,10 +126,7 @@ void FX_EQ_Init(
     f->update_coeffs(f);
 }
 
-void FX_EQ_Update(FX_EQ_t* f, float32_t df_c, float32_t dq, float32_t dg) {
-    f->f_c += df_c;
-    f->q += dq;
-    f->g += dg;
+void FX_EQ_Update(FX_EQ_t* f) {
     UpdateComputationParameters(f);
     f->update_coeffs(f);
 }

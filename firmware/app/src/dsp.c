@@ -102,6 +102,8 @@ static float32_t s_filter_coeffs[5 * N_FILTERS];
 static float32_t s_filter_state[4 * N_FILTERS];
 static arm_biquad_casd_df1_inst_f32 s_filter;
 
+static FX_Parameter_t s_filter_params[3 * N_FILTERS];
+
 static int CheckClipping(void) {
     size_t clipped = 0;
     for (size_t i = 0; i < N; i++) {
@@ -137,9 +139,33 @@ void DSP_Init(void) {
 #endif
 
 #if N_FILTERS == 3
-    FX_EQ_Init(s_eq, FX_EQ_LOW_SHELF, 100, 1, 0, s_filter_coeffs);
-    FX_EQ_Init(s_eq + 1, FX_EQ_PEAK, 800, 4, 0, s_filter_coeffs + 5);
-    FX_EQ_Init(s_eq + 2, FX_EQ_HIGH_SHELF, 2000, 1, 0, s_filter_coeffs + 10);
+    FX_EQ_Init(
+        s_eq,
+        FX_EQ_LOW_SHELF,
+        100,
+        1,
+        0,
+        s_filter_coeffs,
+        s_filter_params
+    );
+    FX_EQ_Init(
+        s_eq + 1,
+        FX_EQ_PEAK,
+        800,
+        2,
+        0,
+        s_filter_coeffs + 5,
+        s_filter_params + 3
+    );
+    FX_EQ_Init(
+        s_eq + 2,
+        FX_EQ_HIGH_SHELF,
+        4000,
+        1,
+        0,
+        s_filter_coeffs + 10,
+        s_filter_params + 6
+    );
 #endif
 
     arm_biquad_cascade_df1_init_f32(
@@ -165,26 +191,33 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     BSP_LED_Off(LED2);
 }
 
-void DSP_GetFrequencyResponseCurve(uint8_t* line_shape) 
-{
+void DSP_GetFrequencyResponseCurve(uint8_t* line_shape) {
     for (uint32_t i = 0; i < OLED_WIDTH; i++) {
         line_shape[i] = OLED_HEIGHT / 2;
         for (uint32_t j = 0; j < N_FILTERS; j++) {
-            line_shape[i] += round(2.f * FX_EQ_ComputeFrequencyResponse(s_eq + j, i)); // 2px for 1dB
+            line_shape[i] += round(
+                FX_EQ_ComputeFrequencyResponse(s_eq + j, i)
+            ); // 1px for 1dB
+        }
+        if (line_shape[i] > OLED_HEIGHT) {
+            line_shape[i] = OLED_HEIGHT;
         }
     }
 }
 
 bool DSP_UpdateParameters(int delta, bool btn) {
-    static size_t s_filter_idx = 0;
+    static size_t s_param_idx = 0;
     if (delta == 0 && !btn)
         return false;
 
-    if (btn)
-        s_filter_idx = (s_filter_idx + 1) % N_FILTERS;
+    if (btn) {
+        s_param_idx = (s_param_idx + 1) % (3 * N_FILTERS);
+    }
 
+    if (delta != 0) {
+        FX_Parameter_Update(s_filter_params + s_param_idx, delta);
+        FX_EQ_Update(s_eq + (s_param_idx / 3));
+    }
 
-    FX_EQ_Update(s_eq + s_filter_idx, 0, 0, delta);
-    
     return true;
 }

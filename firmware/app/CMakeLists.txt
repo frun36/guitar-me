@@ -7,6 +7,7 @@ target_sources(app PRIVATE
     src/dsp.c
     src/fx/eq.c
     src/fx/eq_w_lut.c
+    src/fx/parameter.c
 )
 
 target_include_directories(app PRIVATE

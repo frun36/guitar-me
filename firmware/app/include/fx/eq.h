@@ -1,6 +1,7 @@
 #pragma once
 
 #include "arm_math_types.h"
+#include "fx/parameter.h"
 
 typedef enum { FX_EQ_PEAK, FX_EQ_LOW_SHELF, FX_EQ_HIGH_SHELF } FX_EQ_Shape_t;
 
@@ -23,9 +24,10 @@ void FX_EQ_Init(
     float32_t f_c,
     float32_t q,
     float32_t g,
-    float32_t* coeffs
+    float32_t* coeffs,
+    FX_Parameter_t* p
 );
 
-void FX_EQ_Update(FX_EQ_t* f, float32_t df_c, float32_t dq, float32_t dg);
+void FX_EQ_Update(FX_EQ_t* f);
 
 float32_t FX_EQ_ComputeFrequencyResponse(FX_EQ_t* f, size_t i);
