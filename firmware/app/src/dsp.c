@@ -165,29 +165,26 @@ void DSP_Process(uint16_t* in, uint16_t* out) {
     BSP_LED_Off(LED2);
 }
 
-void DSP_UpdateParameters(int delta, bool btn) {
+void DSP_GetFrequencyResponseCurve(uint8_t* line_shape) 
+{
+    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
+        line_shape[i] = OLED_HEIGHT / 2;
+        for (uint32_t j = 0; j < N_FILTERS; j++) {
+            line_shape[i] += round(2.f * FX_EQ_ComputeFrequencyResponse(s_eq + j, i)); // 2px for 1dB
+        }
+    }
+}
+
+bool DSP_UpdateParameters(int delta, bool btn) {
     static size_t s_filter_idx = 0;
-    static uint8_t s_line_shape[OLED_WIDTH];
     if (delta == 0 && !btn)
-        return;
+        return false;
 
     if (btn)
         s_filter_idx = (s_filter_idx + 1) % N_FILTERS;
 
-    // clear old line
-    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
-        OLED_SetPixel(i, s_line_shape[i], false);
-    }
 
     FX_EQ_Update(s_eq + s_filter_idx, 0, 0, delta);
-
-    // draw new line
-    for (uint32_t i = 0; i < OLED_WIDTH; i++) {
-        s_line_shape[i] = OLED_HEIGHT / 2;
-        for (uint32_t j = 0; j < N_FILTERS; j++) {
-            s_line_shape[i] += FX_EQ_ComputeFrequencyResponse(s_eq + j, i);
-        }
-        OLED_SetPixel(i, s_line_shape[i], true);
-    }
-    OLED_Flush();
+    
+    return true;
 }
